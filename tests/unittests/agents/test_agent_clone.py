@@ -374,6 +374,39 @@ def test_clone_with_sub_agents_update():
   assert original.sub_agents[1].name == "original_sub2"
 
 
+def test_clone_with_callbacks():
+  """Test cloning with callbacks in list format."""
+  before_agent_callback = [lambda *args, **kwargs: None]
+  after_agent_callback = [lambda *args, **kwargs: None]
+  before_model_callback = [lambda *args, **kwargs: None]
+  after_model_callback = [lambda *args, **kwargs: None]
+  before_tool_callback = [lambda *args, **kwargs: None]
+  after_tool_callback = [lambda *args, **kwargs: None]
+  tools = [lambda *args, **kwargs: None]
+
+  original = LlmAgent(
+      name="original_agent",
+      description="Original agent",
+      before_agent_callback=before_agent_callback,
+      after_agent_callback=after_agent_callback,
+      before_model_callback=before_model_callback,
+      after_model_callback=after_model_callback,
+      before_tool_callback=before_tool_callback,
+      after_tool_callback=after_tool_callback,
+      tools=tools,
+  )
+
+  cloned = original.clone()
+
+  assert id(original.before_agent_callback) != id(cloned.before_agent_callback)
+  assert id(original.after_agent_callback) != id(cloned.after_agent_callback)
+  assert id(original.before_model_callback) != id(cloned.before_model_callback)
+  assert id(original.after_model_callback) != id(cloned.after_model_callback)
+  assert id(original.before_tool_callback) != id(cloned.before_tool_callback)
+  assert id(original.after_tool_callback) != id(cloned.after_tool_callback)
+  assert id(original.tools) != id(cloned.tools)
+
+
 if __name__ == "__main__":
   # Run a specific test for debugging
   test_three_level_nested_agent()

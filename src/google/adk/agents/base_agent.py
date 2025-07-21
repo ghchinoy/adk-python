@@ -132,6 +132,26 @@ class BaseAgent(BaseModel):
       response and appended to event history as agent response.
   """
 
+  def _clone_list_fields(
+      self,
+      cloned_agent: BaseAgent,
+      update: Mapping[str, Any] | None,
+  ) -> None:
+    """Shallow copies fields that are lists and not provided in the update."""
+    if (update is None or 'before_agent_callback' not in update) and isinstance(
+        cloned_agent.before_agent_callback, list
+    ):
+      cloned_agent.before_agent_callback = (
+          cloned_agent.before_agent_callback.copy()
+      )
+
+    if (update is None or 'after_agent_callback' not in update) and isinstance(
+        cloned_agent.after_agent_callback, list
+    ):
+      cloned_agent.after_agent_callback = (
+          cloned_agent.after_agent_callback.copy()
+      )
+
   def clone(
       self: SelfAgent, update: Mapping[str, Any] | None = None
   ) -> SelfAgent:
@@ -164,6 +184,11 @@ class BaseAgent(BaseModel):
         )
 
     cloned_agent = self.model_copy(update=update)
+
+    # If any field is stored as list and not provided in the update, need to
+    # shallow copy it for the cloned agent to avoid sharing the same list object
+    # with the original agent.
+    self._clone_list_fields(cloned_agent=cloned_agent, update=update)
 
     if update is None or 'sub_agents' not in update:
       # If `sub_agents` is not provided in the update, need to recursively clone
