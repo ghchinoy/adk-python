@@ -20,12 +20,12 @@ from typing import Optional
 
 from ...utils.feature_decorator import experimental
 from ..google_cloud_tool import GoogleCloudTool
-from .bigquery_credentials import BigQueryCredentialsConfig
-from .config import BigQueryToolConfig
+from .config import SpannerToolConfig
+from .spanner_credentials import SpannerCredentialsConfig
 
 
 @experimental
-class BigQueryTool(GoogleCloudTool):
+class SpannerTool(GoogleCloudTool):
   """GoogleApiTool class for tools that call Google APIs.
 
   This class is for developers to handcraft customized Google API tools rather
@@ -40,8 +40,8 @@ class BigQueryTool(GoogleCloudTool):
       self,
       func: Callable[..., Any],
       *,
-      credentials_config: Optional[BigQueryCredentialsConfig] = None,
-      bigquery_tool_config: Optional[BigQueryToolConfig] = None,
+      credentials_config: Optional[SpannerCredentialsConfig] = None,
+      spanner_tool_config: Optional[SpannerToolConfig] = None,
   ):
     """Initialize the Google API tool.
 
@@ -54,7 +54,7 @@ class BigQueryTool(GoogleCloudTool):
     super().__init__(
         func=func,
         credentials_config=credentials_config,
-        tool_config=bigquery_tool_config
-        if bigquery_tool_config
-        else BigQueryToolConfig(),
+        tool_config=spanner_tool_config
+        if spanner_tool_config
+        else SpannerToolConfig(),
     )

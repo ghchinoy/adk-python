@@ -17,9 +17,9 @@ from unittest.mock import Mock
 from unittest.mock import patch
 
 from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsConfig
-from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsManager
 from google.adk.tools.bigquery.bigquery_tool import BigQueryTool
 from google.adk.tools.bigquery.config import BigQueryToolConfig
+from google.adk.tools.google_cloud_credentials import GoogleCloudCredentialsManager
 from google.adk.tools.tool_context import ToolContext
 # Mock the Google OAuth and API dependencies
 from google.oauth2.credentials import Credentials
@@ -99,7 +99,7 @@ class TestBigQueryTool:
 
     assert tool.func == sample_function
     assert tool._credentials_manager is not None
-    assert isinstance(tool._credentials_manager, BigQueryCredentialsManager)
+    assert isinstance(tool._credentials_manager, GoogleCloudCredentialsManager)
     # Verify that 'credentials' parameter is ignored in function signature analysis
     assert "credentials" in tool._ignore_params
 
