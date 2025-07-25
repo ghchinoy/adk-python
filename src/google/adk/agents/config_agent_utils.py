@@ -24,16 +24,9 @@ import yaml
 from ..utils.feature_decorator import working_in_progress
 from .agent_config import AgentConfig
 from .base_agent import BaseAgent
+from .base_agent_config import BaseAgentConfig
 from .base_agent_config import SubAgentConfig
 from .common_configs import CodeConfig
-from .llm_agent import LlmAgent
-from .llm_agent_config import LlmAgentConfig
-from .loop_agent import LoopAgent
-from .loop_agent_config import LoopAgentConfig
-from .parallel_agent import ParallelAgent
-from .parallel_agent import ParallelAgentConfig
-from .sequential_agent import SequentialAgent
-from .sequential_agent import SequentialAgentConfig
 
 
 @working_in_progress("from_config is not ready for use.")
@@ -54,16 +47,28 @@ def from_config(config_path: str) -> BaseAgent:
   abs_path = os.path.abspath(config_path)
   config = _load_config_from_path(abs_path)
 
-  if isinstance(config.root, LlmAgentConfig):
-    return LlmAgent.from_config(config.root, abs_path)
-  elif isinstance(config.root, LoopAgentConfig):
-    return LoopAgent.from_config(config.root, abs_path)
-  elif isinstance(config.root, ParallelAgentConfig):
-    return ParallelAgent.from_config(config.root, abs_path)
-  elif isinstance(config.root, SequentialAgentConfig):
-    return SequentialAgent.from_config(config.root, abs_path)
+  agent_config = config.root
+  agent_clz_path = agent_config.agent_class
+  if "." not in agent_clz_path:
+    agent_clz_path = f"google.adk.agents.{agent_clz_path}"
+
+  agent_clz = _resolve_fully_qualified_name(agent_clz_path)
+  if not issubclass(agent_clz, BaseAgent):
+    raise ValueError(
+        f"Invalid agent class {agent_clz_path}. "
+        "It must be a subclass of BaseAgent."
+    )
+
+  # pylint: disable=unidiomatic-typecheck Needs exact class matching.
+  if type(agent_config) is BaseAgentConfig:
+    # Resolve the concrete agent config for user-defined agent classes.
+    agent_config = agent_clz.config_type.model_validate(
+        agent_config.model_dump()
+    )
+    return agent_clz.from_config(agent_config, abs_path)
   else:
-    raise ValueError("Unsupported config type")
+    # For built-in agent classes, no need to re-validate.
+    return agent_clz.from_config(agent_config, abs_path)
 
 
 @working_in_progress("_load_config_from_path is not ready for use.")
@@ -88,6 +93,16 @@ def _load_config_from_path(config_path: str) -> AgentConfig:
     config_data = yaml.safe_load(f)
 
   return AgentConfig.model_validate(config_data)
+
+
+@working_in_progress("_resolve_fully_qualified_name is not ready for use.")
+def _resolve_fully_qualified_name(name: str) -> Any:
+  try:
+    module_path, obj_name = name.rsplit(".", 1)
+    module = importlib.import_module(module_path)
+    return getattr(module, obj_name)
+  except Exception as e:
+    raise ValueError(f"Invalid fully qualified name: {name}") from e
 
 
 @working_in_progress("build_sub_agent is not ready for use.")
@@ -181,4 +196,5 @@ def resolve_callbacks(callbacks_config: List[CodeConfig]) -> Any:
   Returns:
     List of resolved callback objects.
   """
+  return [resolve_code_reference(config) for config in callbacks_config]
   return [resolve_code_reference(config) for config in callbacks_config]

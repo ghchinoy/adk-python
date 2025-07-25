@@ -21,6 +21,7 @@ from typing import Any
 from typing import AsyncGenerator
 from typing import Awaitable
 from typing import Callable
+from typing import ClassVar
 from typing import Literal
 from typing import Optional
 from typing import Type
@@ -52,6 +53,7 @@ from ..tools.function_tool import FunctionTool
 from ..tools.tool_context import ToolContext
 from ..utils.feature_decorator import working_in_progress
 from .base_agent import BaseAgent
+from .base_agent_config import BaseAgentConfig
 from .callback_context import CallbackContext
 from .common_configs import CodeConfig
 from .invocation_context import InvocationContext
@@ -127,6 +129,8 @@ class LlmAgent(BaseAgent):
 
   When not set, the agent will inherit the model from its ancestor.
   """
+
+  config_type: ClassVar[type[BaseAgentConfig]] = LlmAgentConfig
 
   instruction: Union[str, InstructionProvider] = ''
   """Instructions for the LLM model, guiding the agent's behavior."""
