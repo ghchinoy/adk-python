@@ -18,11 +18,13 @@ from typing import Optional
 from typing import TYPE_CHECKING
 
 from google.genai import types
+from pydantic import BaseModel
 from typing_extensions import override
 
 from ..utils.model_name_utils import is_gemini_1_model
 from ..utils.model_name_utils import is_gemini_model
 from .base_tool import BaseTool
+from .base_tool import ToolArgsConfig
 from .tool_context import ToolContext
 
 if TYPE_CHECKING:
@@ -114,3 +116,39 @@ class VertexAiSearchTool(BaseTool):
           'Vertex AI search tool is not supported for model'
           f' {llm_request.model}'
       )
+
+  @classmethod
+  @override
+  def from_config(
+      cls, config: ToolArgsConfig, config_abs_path: str
+  ) -> VertexAiSearchTool:
+    vertex_ai_search_tool_config = VertexAiSearchToolConfig.model_validate(
+        config.model_dump()
+    )
+
+    return cls(
+        data_store_id=vertex_ai_search_tool_config.data_store_id,
+        data_store_specs=vertex_ai_search_tool_config.data_store_specs,
+        search_engine_id=vertex_ai_search_tool_config.search_engine_id,
+        filter=vertex_ai_search_tool_config.filter,
+        max_results=vertex_ai_search_tool_config.max_results,
+    )
+
+
+class VertexAiSearchToolConfig(BaseModel):
+  """The config for the Vertex AI Search tool."""
+
+  data_store_id: Optional[str] = None
+  """VertexAiSearchTool.data_store_id."""
+
+  data_store_specs: Optional[list[types.VertexAISearchDataStoreSpec]] = None
+  """VertexAiSearchTool.data_store_specs."""
+
+  search_engine_id: Optional[str] = None
+  """VertexAiSearchTool.search_engine_id."""
+
+  filter: Optional[str] = None
+  """VertexAiSearchTool.filter."""
+
+  max_results: Optional[int] = None
+  """VertexAiSearchTool.max_results."""
